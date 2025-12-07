@@ -21,18 +21,15 @@ void Board::loadAssets() {
 }
 
 void Board::initCards() {
-    // Limpiar tablero
     first = nullptr;
     second = nullptr;
 
-    // Crear IDs de pares (0-14, dos veces)
     std::vector<int> ids;
     for (int i = 0; i < 15; i++) {
         ids.push_back(i);
         ids.push_back(i);
     }
 
-    // Mezclar cartas
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::shuffle(ids.begin(), ids.end(), std::default_random_engine(seed));
 
@@ -43,7 +40,6 @@ void Board::initCards() {
     float originalHeight = 180.f;
     float ratio = originalWidth / originalHeight;
 
-    // Calcular tamaño escalado para que todas quepan
     float maxCardWidth = 1920.f / (cols + 0.5f);
     float maxCardHeight = 1080.f / (rows + 0.5f);
 
@@ -55,7 +51,6 @@ void Board::initCards() {
         cardWidth = cardHeight * ratio;
     }
 
-    // Espaciado
     float totalCardsWidth = cols * cardWidth;
     float spacingX = (1920 - totalCardsWidth) / (cols + 1);
     if (spacingX < 10.f) spacingX = 10.f;
@@ -70,7 +65,6 @@ void Board::initCards() {
         Card c;
         c.id = ids[i];
 
-        // Asignar texturas y escalar
         c.front.setTexture(textures[ids[i]]);
         c.front.setScale(cardWidth / originalWidth, cardHeight / originalHeight);
 

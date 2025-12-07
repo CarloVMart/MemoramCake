@@ -20,22 +20,17 @@ private:
     GameState state;
     bool paused = false;
 
-    // Fondo
     sf::Texture backgroundTexture;
     sf::Sprite background;
 
-    // Botón Play
     Button* playButton;
     sf::Texture playTexture;
 
-    // Tablero
     Board board;
 
-    // Timer
     Timer timer;
     sf::Font timerFont;
 
-    // Métodos internos
     void processEvents();
     void update(float dt);
     void render();

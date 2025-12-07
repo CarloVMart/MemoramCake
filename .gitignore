@@ -1,0 +1,21 @@
+# Archivos binarios
+/bin/*.exe
+/bin/*.dll
+/bin/*.o
+
+# Carpeta SFML
+/include/SFML/
+# o si tienes SFML instalado globalmente, no hace falta ignorar nada más
+
+# Archivos temporales de VS Code
+.vscode/
+
+# Archivos temporales de compilación
+*.obj
+*.log
+*.tmp
+*.out
+*.exe
+
+# Otros sistemas
+.DS_Store

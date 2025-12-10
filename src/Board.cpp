@@ -2,125 +2,155 @@
 #include <algorithm>
 #include <random>
 #include <chrono>
-#include <string>
+#include <sstream>
+#include <iomanip>
 #include <iostream>
 
-Board::Board() : first(nullptr), second(nullptr) {}
+Board::Board() : first(nullptr), second(nullptr), waiting(false), waitTimer(0.f) {}
 
+// Carga texturas con nombres "01.png", "02.png", ... "15.png"
 void Board::loadAssets() {
     for (int i = 0; i < 15; i++) {
-        std::string filename = std::string("assets/images/") + (i < 9 ? "0" : "") + std::to_string(i+1) + ".png";
+        std::ostringstream ss;
+        ss << std::setw(2) << std::setfill('0') << (i + 1); // 01 .. 15
+        std::string filename = "assets/images/" + ss.str() + ".png";
         if (!textures[i].loadFromFile(filename)) {
-            std::cerr << "Error cargando la carta: " << filename << std::endl;
+            std::cerr << "Failed to load image \"" << filename << "\". Reason: Unable to open file\n";
         }
     }
 
     if (!backTexture.loadFromFile("assets/images/back.png")) {
-        std::cerr << "Error cargando back.png" << std::endl;
+        std::cerr << "Failed to load image \"assets/images/back.png\". Reason: Unable to open file\n";
     }
 }
 
 void Board::initCards() {
+    // reset estado
     first = nullptr;
     second = nullptr;
+    waiting = false;
+    waitTimer = 0.f;
 
+    // generar ids 0,0,1,1,...14,14
     std::vector<int> ids;
-    for (int i = 0; i < 15; i++) {
+    ids.reserve(30);
+    for (int i = 0; i < 15; ++i) {
         ids.push_back(i);
         ids.push_back(i);
     }
 
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    std::shuffle(ids.begin(), ids.end(), std::default_random_engine(seed));
+    // mezclar con mt19937
+    std::mt19937 rng((unsigned)std::chrono::system_clock::now().time_since_epoch().count());
+    std::shuffle(ids.begin(), ids.end(), rng);
 
-    int cols = 6;
-    int rows = 5;
-
-    float originalWidth = 122.f;
-    float originalHeight = 180.f;
-    float ratio = originalWidth / originalHeight;
-
-    float maxCardWidth = 1920.f / (cols + 0.5f);
-    float maxCardHeight = 1080.f / (rows + 0.5f);
-
-    float cardWidth = maxCardWidth;
-    float cardHeight = cardWidth / ratio;
-
-    if (cardHeight > maxCardHeight) {
-        cardHeight = maxCardHeight;
-        cardWidth = cardHeight * ratio;
-    }
-
-    float totalCardsWidth = cols * cardWidth;
-    float spacingX = (1920 - totalCardsWidth) / (cols + 1);
-    if (spacingX < 10.f) spacingX = 10.f;
-
-    float startX = (1920 - (totalCardsWidth + spacingX * (cols - 1))) / 2.f;
-    float totalCardsHeight = rows * cardHeight;
-    float spacingY = (1080 - totalCardsHeight) / (rows + 1);
-    if (spacingY < 10.f) spacingY = 10.f;
-    float startY = spacingY;
-
-    for (int i = 0; i < 30; i++) {
-        Card c;
-        c.id = ids[i];
-
-        c.front.setTexture(textures[ids[i]]);
-        c.front.setScale(cardWidth / originalWidth, cardHeight / originalHeight);
-
-        c.back.setTexture(backTexture);
-        c.back.setScale(cardWidth / originalWidth, cardHeight / originalHeight);
-
-        int col = i % cols;
-        int row = i / cols;
-
-        float posX = startX + col * (cardWidth + spacingX);
-        float posY = startY + row * (cardHeight + spacingY);
-
-        c.front.setPosition(posX, posY);
-        c.back.setPosition(posX, posY);
-
-        cards[i] = c;
+    // asignar texturas a cada carta, y ponerlas ocultas
+    for (int i = 0; i < 30; ++i) {
+        cards[i].setFront(textures[ids[i]]);
+        cards[i].setBack(backTexture);
+        cards[i].setId(ids[i]);
+        cards[i].hide();        // asegurarse que estén boca abajo
+        cards[i].setMatched(false);
     }
 }
 
 void Board::update(float dt) {
-    if (first && second) {
-        if (first->id == second->id) {
-            first->matched = true;
-            second->matched = true;
-        } else {
-            first->flipped = false;
-            second->flipped = false;
+    if (waiting) {
+        waitTimer += dt;
+        // cuando el tiempo de espera pasa, resolver el par
+        if (waitTimer >= 0.6f) {
+            if (first && second) {
+                if (first->getId() == second->getId()) {
+                    first->setMatched(true);
+                    second->setMatched(true);
+                    // dejarlas visibles (matched)
+                } else {
+                    // ocultarlas
+                    first->hide();
+                    second->hide();
+                }
+            }
+            // reset
+            first = nullptr;
+            second = nullptr;
+            waiting = false;
+            waitTimer = 0.f;
         }
-        first = nullptr;
-        second = nullptr;
     }
+    // si no waiting, no hacer nada especial aquí (las cartas no necesitan animación adicional)
 }
 
 void Board::draw(sf::RenderWindow& window) {
-    for (int i = 0; i < 30; i++) {
-        cards[i].draw(window);
+    sf::Vector2u size = window.getSize();
+
+    int rows = 5;
+    int cols = 6;
+
+    // tamaño base de carta en px (tu original 122x180)
+    float cardW = 122.f;
+    float cardH = 180.f;
+
+    // escalar para que quepan en la ventana (usar un 80% del área para márgenes)
+    float scaleW = (size.x * 0.8f) / (cols * cardW);
+    float scaleH = (size.y * 0.8f) / (rows * cardH);
+    float scale = std::min(scaleW, scaleH);
+
+    // spacing en px relativo al scale (por ejemplo 15 px base)
+    float spacingBase = 15.f;
+    float spacing = spacingBase * scale;
+
+    // calcular ancho/alto total ocupado (sin añadir spacing extra a la derecha/bajo)
+    float totalW = cols * (cardW * scale) + (cols - 1) * spacing;
+    float totalH = rows * (cardH * scale) + (rows - 1) * spacing;
+
+    float startX = (size.x - totalW) / 2.f;
+    float startY = (size.y - totalH) / 2.f;
+
+    for (int r = 0; r < rows; ++r) {
+        for (int c = 0; c < cols; ++c) {
+            int index = r * cols + c;
+
+            sf::Sprite& sprite = cards[index].getSprite();
+            sprite.setScale(scale, scale);
+            sprite.setPosition(
+                startX + c * (cardW * scale + spacing),
+                startY + r * (cardH * scale + spacing)
+            );
+
+            window.draw(sprite);
+        }
     }
 }
 
 void Board::handleClick(sf::Vector2f pos) {
-    for (int i = 0; i < 30; i++) {
-        Card& c = cards[i];
-        if (!c.flipped && !c.matched && c.contains(pos)) {
-            c.flip();
-            if (!first)
-                first = &c;
-            else if (!second)
-                second = &c;
-            break;
+    // si ya hay dos cartas descubiertas y estamos esperando, ignorar clicks
+    if (waiting) return;
+
+    for (int i = 0; i < 30; ++i) {
+        sf::Sprite& s = cards[i].getSprite();
+        if (s.getGlobalBounds().contains(pos)) {
+            if (cards[i].isMatched()) return;
+            if (cards[i].isFaceUp()) return;
+
+            // revelar carta
+            cards[i].reveal();
+
+            if (!first) {
+                first = &cards[i];
+            } else if (!second) {
+                second = &cards[i];
+                // ahora que hay dos cartas, iniciar el delay para resolver
+                waiting = true;
+                waitTimer = 0.f;
+            }
+            return;
         }
     }
 }
 
 int Board::matchedPairs() {
     int count = 0;
-    for (int i = 0; i < 30; i++)
-        if (cards[i].matched) count++;
+    for (int i = 0; i < 30; ++i) {
+        if (cards[i].isMatched()) count++;
+    }
     return count / 2;
 }

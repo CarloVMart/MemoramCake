@@ -2,21 +2,31 @@
 #include <SFML/Graphics.hpp>
 
 class Card {
-public:
-    int id;
-    bool flipped = false;
-    bool matched = false;
-    sf::Sprite front;
-    sf::Sprite back;
+private:
+    sf::Texture* frontTexture;
+    sf::Texture* backTexture;
+    sf::Sprite sprite;
 
-    void flip() { flipped = !flipped; }
-    bool contains(sf::Vector2f pos) {
-        return front.getGlobalBounds().contains(pos);
-    }
-    void draw(sf::RenderWindow& window) {
-        if (flipped || matched)
-            window.draw(front);
-        else
-            window.draw(back);
-    }
+    int id;
+    bool faceUp;
+    bool matched;
+
+public:
+    Card();
+
+    void setFront(sf::Texture& tex);
+    void setBack(sf::Texture& tex);
+    void setId(int i);
+    int getId() const;
+
+    void reveal();
+    void hide();
+
+    bool isFaceUp() const;
+    bool isMatched() const;
+    void setMatched(bool m);
+
+    sf::Sprite& getSprite();
+
+    void setPosition(float x, float y);
 };

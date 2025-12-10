@@ -4,33 +4,34 @@
 #include "Button.hpp"
 #include "Timer.hpp"
 
-enum GameState { MENU, PLAYING };
-
 class Game {
+private:
+    sf::RenderWindow window;
+    sf::Vector2u windowedSize;
+    bool isFullscreen;
+
+    enum State { MENU, PLAYING };
+    State state;
+
+    bool paused;
+
+    sf::Texture backgroundTexture;
+    sf::Sprite background;
+
+    sf::Texture playTexture;
+    Button* playButton;
+
+    sf::Font timerFont;
+
+    Board board;
+    Timer timer;
+
 public:
     Game();
     ~Game();
     void run();
 
 private:
-    sf::RenderWindow window;
-    bool isFullscreen;
-    sf::Vector2u windowedSize;
-
-    GameState state;
-    bool paused = false;
-
-    sf::Texture backgroundTexture;
-    sf::Sprite background;
-
-    Button* playButton;
-    sf::Texture playTexture;
-
-    Board board;
-
-    Timer timer;
-    sf::Font timerFont;
-
     void processEvents();
     void update(float dt);
     void render();

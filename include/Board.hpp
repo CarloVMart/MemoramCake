@@ -11,6 +11,10 @@ private:
     Card* first;
     Card* second;
 
+    // bloqueo mientras se espera a resolver par
+    bool waiting;
+    float waitTimer; // segundos
+
 public:
     Board();
     void loadAssets();

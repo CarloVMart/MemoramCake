@@ -19,7 +19,6 @@ private:
     State state;
     bool paused;
 
-    // UI / assets
     sf::Texture backgroundTexture;
     sf::Sprite background;
 
@@ -28,11 +27,9 @@ private:
 
     sf::Font font;
 
-    // game
     Board board;
     Timer timer;
 
-    // helpers
     void processEvents();
     void update(float dt);
     void render();

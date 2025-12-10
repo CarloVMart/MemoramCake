@@ -13,7 +13,7 @@ public:
     void draw(sf::RenderWindow& window);
     void handleClick(sf::Vector2f pos);
     int matchedPairs() const;
-    void revealAll(); // Revela todas las cartas
+    void revealAll();
     int getCols() const { return cols; }
     int getRows() const { return rows; }
     void computeLayout(float& outCardW, float& outCardH,

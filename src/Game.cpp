@@ -8,26 +8,22 @@ Game::Game()
       state(MENU),
       paused(false)
 {
-    // background
     if (!backgroundTexture.loadFromFile("assets/images/fondo.png"))
         std::cerr << "Error cargando fondo.png\n";
     background.setTexture(backgroundTexture);
     scaleBackground();
 
-    // play button
     if (!playTexture.loadFromFile("assets/images/play_button.png"))
         std::cerr << "Error cargando play_button.png\n";
     playButton = new Button(playTexture);
     centerPlayButton();
 
-    // font
     if (!font.loadFromFile("assets/fonts/LuckiestGuy-Regular.ttf"))
         std::cerr << "Error cargando fuente\n";
 
-    // board
     board.loadAssets();
     board.initCards();
-    timer.reset(0.f); // MENU inicia con tiempo 0
+    timer.reset(0.f);
 }
 
 Game::~Game() { delete playButton; }
@@ -81,24 +77,22 @@ void Game::render() {
     window.clear();
     window.draw(background);
 
-    // Obtener layout del grid de cartas
     float cardW, cardH, spacingX, spacingY, startX, startY;
     board.computeLayout(cardW, cardH, spacingX, spacingY, startX, startY);
     float totalWidth = board.getCols() * cardW + (board.getCols() - 1) * spacingX;
     float totalHeight = board.getRows() * cardH + (board.getRows() - 1) * spacingY;
     float gridCenterY = startY + totalHeight / 2.f;
 
-    // --- TIEMPO a la izquierda ---
 sf::Text textTiempo("TIEMPO", font, 130);
 textTiempo.setFillColor(sf::Color::White);
 textTiempo.setOrigin(textTiempo.getLocalBounds().width/2, textTiempo.getLocalBounds().height/2);
-textTiempo.setPosition(startX / 2.f, gridCenterY - 406.f + 50.f); // bajar 200px
+textTiempo.setPosition(startX / 2.f, gridCenterY - 406.f + 50.f);
 window.draw(textTiempo);
 
 sf::Text valueTiempo(std::to_string(int(timer.getTime())), font, 130);
 valueTiempo.setFillColor(sf::Color::White);
 valueTiempo.setOrigin(valueTiempo.getLocalBounds().width/2, valueTiempo.getLocalBounds().height/2);
-valueTiempo.setPosition(startX / 2.f, gridCenterY - 406.f + 160.f); // bajar 100px más que el título
+valueTiempo.setPosition(startX / 2.f, gridCenterY - 406.f + 160.f);
 window.draw(valueTiempo);
 
 // --- PARES a la derecha ---
@@ -106,20 +100,18 @@ float rightX = startX + totalWidth + (1920.f - (startX + totalWidth)) / 2.f;
 sf::Text textPares("PARES", font, 130);
 textPares.setFillColor(sf::Color::White);
 textPares.setOrigin(textPares.getLocalBounds().width/2, textPares.getLocalBounds().height/2);
-textPares.setPosition(rightX, gridCenterY - 406.f + 50.f); // bajar 200px
+textPares.setPosition(rightX, gridCenterY - 406.f + 50.f);
 window.draw(textPares);
 
 sf::Text valuePares(std::to_string(board.matchedPairs()), font, 130);
 valuePares.setFillColor(sf::Color::White);
 valuePares.setOrigin(valuePares.getLocalBounds().width/2, valuePares.getLocalBounds().height/2);
-valuePares.setPosition(rightX, gridCenterY - 406.f + 160.f); // bajar 100px más que el título
+valuePares.setPosition(rightX, gridCenterY - 406.f + 160.f);
 window.draw(valuePares);
 
 
-    // Dibujar cartas
     board.draw(window);
 
-    // Dibujar playButton solo en MENU
     if (state == MENU) playButton->draw(window);
 
     window.display();

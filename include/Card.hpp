@@ -16,7 +16,6 @@ public:
     bool isMatched() const;
     void setMatched(bool m);
 
-    // Access to sprites for positioning/drawing
     sf::Sprite& frontSprite();
     sf::Sprite& backSprite();
 

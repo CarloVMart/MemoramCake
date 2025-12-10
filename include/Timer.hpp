@@ -2,7 +2,7 @@
 
 class Timer {
 private:
-    float time; // seconds
+    float time;
 public:
     Timer(): time(0.f) {}
     void reset(float t) { time = t; }

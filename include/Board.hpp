@@ -1,7 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <vector>
-#include "Card.h"
+#include "Card.hpp"
 
 class Board {
 private:

@@ -1,8 +1,8 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include "Board.h"
-#include "Button.h"
-#include "Timer.h"
+#include "Board.hpp"
+#include "Button.hpp"
+#include "Timer.hpp"
 
 enum GameState { MENU, PLAYING };
 

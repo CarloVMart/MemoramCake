@@ -1,3 +1,2 @@
 #include "Timer.hpp"
-
-// No se necesita código adicional aquí
+// all inline in header; nothing to implement here

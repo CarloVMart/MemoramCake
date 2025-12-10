@@ -2,14 +2,10 @@
 
 class Timer {
 private:
-    float time;
-
+    float time; // seconds
 public:
-    Timer() : time(0.f) {}
-
+    Timer(): time(0.f) {}
     void reset(float t) { time = t; }
-
-    void update(float dt) { if (time > 0.f) time -= dt; }
-
+    void update(float dt) { if (time > 0.f) time -= dt; if (time < 0.f) time = 0.f; }
     float getTime() const { return time; }
 };

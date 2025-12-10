@@ -2,155 +2,173 @@
 #include <algorithm>
 #include <random>
 #include <chrono>
-#include <sstream>
-#include <iomanip>
 #include <iostream>
+#include <string>
+#include <iomanip>
+#include <sstream>
 
-Board::Board() : first(nullptr), second(nullptr), waiting(false), waitTimer(0.f) {}
+Board::Board() : firstIndex(-1), secondIndex(-1), resolveTimer(0.f), resolving(false) {}
 
-// Carga texturas con nombres "01.png", "02.png", ... "15.png"
 void Board::loadAssets() {
-    for (int i = 0; i < 15; i++) {
+    for (int i = 0; i < 15; ++i) {
+        // filenames: 01.png .. 09.png .. 15.png
         std::ostringstream ss;
-        ss << std::setw(2) << std::setfill('0') << (i + 1); // 01 .. 15
-        std::string filename = "assets/images/" + ss.str() + ".png";
+        ss << std::setw(2) << std::setfill('0') << (i+1);
+        std::string filename = std::string("assets/images/") + ss.str() + ".png";
         if (!textures[i].loadFromFile(filename)) {
             std::cerr << "Failed to load image \"" << filename << "\". Reason: Unable to open file\n";
         }
     }
-
     if (!backTexture.loadFromFile("assets/images/back.png")) {
         std::cerr << "Failed to load image \"assets/images/back.png\". Reason: Unable to open file\n";
     }
 }
 
 void Board::initCards() {
-    // reset estado
-    first = nullptr;
-    second = nullptr;
-    waiting = false;
-    waitTimer = 0.f;
-
-    // generar ids 0,0,1,1,...14,14
+    // prepare ids 0..14 duplicated
     std::vector<int> ids;
     ids.reserve(30);
-    for (int i = 0; i < 15; ++i) {
-        ids.push_back(i);
-        ids.push_back(i);
-    }
+    for (int i = 0; i < 15; ++i) { ids.push_back(i); ids.push_back(i); }
 
-    // mezclar con mt19937
-    std::mt19937 rng((unsigned)std::chrono::system_clock::now().time_since_epoch().count());
-    std::shuffle(ids.begin(), ids.end(), rng);
+    // shuffle
+    unsigned seed = (unsigned)std::chrono::system_clock::now().time_since_epoch().count();
+    std::shuffle(ids.begin(), ids.end(), std::default_random_engine(seed));
 
-    // asignar texturas a cada carta, y ponerlas ocultas
+    // assign textures & reset states
     for (int i = 0; i < 30; ++i) {
-        cards[i].setFront(textures[ids[i]]);
-        cards[i].setBack(backTexture);
         cards[i].setId(ids[i]);
-        cards[i].hide();        // asegurarse que estén boca abajo
+        cards[i].setFrontTexture(textures[ids[i]]);
+        cards[i].setBackTexture(backTexture);
+        cards[i].hide();
         cards[i].setMatched(false);
     }
+
+    firstIndex = secondIndex = -1;
+    resolving = false;
+    resolveTimer = 0.f;
+}
+
+void Board::computeLayout(const sf::RenderWindow& window, float& outCardW, float& outCardH,
+                          float& outSpacingX, float& outSpacingY, float& outStartX, float& outStartY)
+{
+    // Original art size (your PNGs): 122 x 180
+    const float origW = 122.f;
+    const float origH = 180.f;
+    const float ratio = origW / origH;
+
+    // target area uses 85% of window to leave margins
+    float areaW = window.getSize().x * 0.85f;
+    float areaH = window.getSize().y * 0.85f;
+
+    // compute candidate sizes so grid fits
+    float candidateW = areaW / (cols + 0.5f);   // rough
+    float candidateH = areaH / (rows + 0.5f);
+
+    // keep aspect ratio of artwork
+    outCardW = candidateW;
+    outCardH = outCardW / ratio;
+    if (outCardH > candidateH) { outCardH = candidateH; outCardW = outCardH * ratio; }
+
+    // spacing: small gap relative to card width, but at least 8 px
+    outSpacingX = std::max(8.f, (window.getSize().x - cols * outCardW) / (cols + 1));
+    outSpacingY = std::max(8.f, (window.getSize().y - rows * outCardH) / (rows + 1));
+
+    // start positions to center grid
+    float totalW = cols * outCardW + (cols - 1) * outSpacingX;
+    float totalH = rows * outCardH + (rows - 1) * outSpacingY;
+    outStartX = (window.getSize().x - totalW) / 2.f;
+    outStartY = (window.getSize().y - totalH) / 2.f;
 }
 
 void Board::update(float dt) {
-    if (waiting) {
-        waitTimer += dt;
-        // cuando el tiempo de espera pasa, resolver el par
-        if (waitTimer >= 0.6f) {
-            if (first && second) {
-                if (first->getId() == second->getId()) {
-                    first->setMatched(true);
-                    second->setMatched(true);
-                    // dejarlas visibles (matched)
+    if (resolving) {
+        resolveTimer += dt;
+        if (resolveTimer >= 0.55f) { // small delay then resolve
+            if (firstIndex >= 0 && secondIndex >= 0) {
+                if (cards[firstIndex].getId() == cards[secondIndex].getId()) {
+                    cards[firstIndex].setMatched(true);
+                    cards[secondIndex].setMatched(true);
                 } else {
-                    // ocultarlas
-                    first->hide();
-                    second->hide();
+                    cards[firstIndex].hide();
+                    cards[secondIndex].hide();
                 }
             }
-            // reset
-            first = nullptr;
-            second = nullptr;
-            waiting = false;
-            waitTimer = 0.f;
+            firstIndex = secondIndex = -1;
+            resolving = false;
+            resolveTimer = 0.f;
         }
     }
-    // si no waiting, no hacer nada especial aquí (las cartas no necesitan animación adicional)
 }
 
 void Board::draw(sf::RenderWindow& window) {
-    sf::Vector2u size = window.getSize();
+    float cardW, cardH, spacingX, spacingY, startX, startY;
+    computeLayout(window, cardW, cardH, spacingX, spacingY, startX, startY);
 
-    int rows = 5;
-    int cols = 6;
-
-    // tamaño base de carta en px (tu original 122x180)
-    float cardW = 122.f;
-    float cardH = 180.f;
-
-    // escalar para que quepan en la ventana (usar un 80% del área para márgenes)
-    float scaleW = (size.x * 0.8f) / (cols * cardW);
-    float scaleH = (size.y * 0.8f) / (rows * cardH);
-    float scale = std::min(scaleW, scaleH);
-
-    // spacing en px relativo al scale (por ejemplo 15 px base)
-    float spacingBase = 15.f;
-    float spacing = spacingBase * scale;
-
-    // calcular ancho/alto total ocupado (sin añadir spacing extra a la derecha/bajo)
-    float totalW = cols * (cardW * scale) + (cols - 1) * spacing;
-    float totalH = rows * (cardH * scale) + (rows - 1) * spacing;
-
-    float startX = (size.x - totalW) / 2.f;
-    float startY = (size.y - totalH) / 2.f;
-
+    // set sprite transforms and draw
     for (int r = 0; r < rows; ++r) {
         for (int c = 0; c < cols; ++c) {
-            int index = r * cols + c;
+            int idx = r * cols + c;
+            Card& card = cards[idx];
 
-            sf::Sprite& sprite = cards[index].getSprite();
-            sprite.setScale(scale, scale);
-            sprite.setPosition(
-                startX + c * (cardW * scale + spacing),
-                startY + r * (cardH * scale + spacing)
-            );
+            // choose sprite based on revealed/matched
+            sf::Sprite& sFront = card.frontSprite();
+            sf::Sprite& sBack = card.backSprite();
 
-            window.draw(sprite);
+            // scale relative to original texture size (assume textures exist)
+            // use back sprite's texture size as baseline (they share original ratio)
+            if (sBack.getTexture()) {
+                sf::Vector2u texSz = sBack.getTexture()->getSize();
+                float sx = cardW / float(texSz.x);
+                float sy = cardH / float(texSz.y);
+                sBack.setScale(sx, sy);
+                sFront.setScale(sx, sy);
+            } else {
+                sBack.setScale(1.f,1.f);
+                sFront.setScale(1.f,1.f);
+            }
+
+            float x = startX + c * (cardW + spacingX);
+            float y = startY + r * (cardH + spacingY);
+
+            sBack.setPosition(x, y);
+            sFront.setPosition(x, y);
+
+            // draw appropriate sprite
+            if (card.isFaceUp() || card.isMatched())
+                window.draw(sFront);
+            else
+                window.draw(sBack);
         }
     }
 }
 
 void Board::handleClick(sf::Vector2f pos) {
-    // si ya hay dos cartas descubiertas y estamos esperando, ignorar clicks
-    if (waiting) return;
+    if (resolving) return; // ignore clicks while resolving
 
+    // need a temporary window (we can't compute Window here) - but sprites have global bounds updated in draw()
+    // We'll iterate and check bounds of backSprite (position/scale updated in last draw call)
     for (int i = 0; i < 30; ++i) {
-        sf::Sprite& s = cards[i].getSprite();
-        if (s.getGlobalBounds().contains(pos)) {
-            if (cards[i].isMatched()) return;
-            if (cards[i].isFaceUp()) return;
+        Card& card = cards[i];
+        if (card.isMatched() || card.isFaceUp()) continue;
 
-            // revelar carta
-            cards[i].reveal();
+        if (card.backSprite().getGlobalBounds().contains(pos)) {
+            // reveal it
+            card.reveal();
 
-            if (!first) {
-                first = &cards[i];
-            } else if (!second) {
-                second = &cards[i];
-                // ahora que hay dos cartas, iniciar el delay para resolver
-                waiting = true;
-                waitTimer = 0.f;
+            if (firstIndex == -1) firstIndex = i;
+            else if (secondIndex == -1) {
+                secondIndex = i;
+                // start resolving timer (block further clicks)
+                resolving = true;
+                resolveTimer = 0.f;
             }
-            return;
+            break;
         }
     }
 }
 
-int Board::matchedPairs() {
+int Board::matchedPairs() const {
     int count = 0;
-    for (int i = 0; i < 30; ++i) {
-        if (cards[i].isMatched()) count++;
-    }
+    for (const auto& c : cards) if (c.isMatched()) ++count;
     return count / 2;
 }

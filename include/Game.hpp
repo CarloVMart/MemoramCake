@@ -5,6 +5,11 @@
 #include "Timer.hpp"
 
 class Game {
+public:
+    Game();
+    ~Game();
+    void run();
+
 private:
     sf::RenderWindow window;
     sf::Vector2u windowedSize;
@@ -12,28 +17,26 @@ private:
 
     enum State { MENU, PLAYING };
     State state;
-
     bool paused;
 
+    // UI / assets
     sf::Texture backgroundTexture;
     sf::Sprite background;
 
     sf::Texture playTexture;
     Button* playButton;
 
-    sf::Font timerFont;
+    sf::Font font;
 
+    // game
     Board board;
     Timer timer;
 
-public:
-    Game();
-    ~Game();
-    void run();
-
-private:
+    // helpers
     void processEvents();
     void update(float dt);
     void render();
     void toggleFullscreen();
+    void centerPlayButton();
+    void scaleBackground();
 };

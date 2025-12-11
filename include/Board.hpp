@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include <array>
 #include <vector>
+#include <functional>
 #include "Card.hpp"
 
 class Board {
@@ -16,6 +17,9 @@ public:
     void revealAll();
     int getCols() const { return cols; }
     int getRows() const { return rows; }
+
+    std::function<void()> onFlipSound;
+
     void computeLayout(float& outCardW, float& outCardH,
                        float& outSpacingX, float& outSpacingY,
                        float& outStartX, float& outStartY);

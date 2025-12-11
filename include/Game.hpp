@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include "Board.hpp"
 #include "Button.hpp"
 #include "Timer.hpp"
@@ -29,6 +30,13 @@ private:
 
     Board board;
     Timer timer;
+
+    sf::Music musicFondo;
+    sf::SoundBuffer flipBuffer;
+    sf::Sound flipSound;
+
+    sf::SoundBuffer countdownBuffer;
+    sf::Sound countdownSound;
 
     void processEvents();
     void update(float dt);

@@ -8,7 +8,7 @@ SFML := -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
 CPP_FILES := $(wildcard $(SRC_DIR)/*.cpp)
 
 # Nombre del ejecutable
-TARGET := $(BIN_DIR)/memorama.exe
+TARGET := $(BIN_DIR)/MemoramCake.exe
 
 # Regla para compilar todo el proyecto
 all: $(TARGET)

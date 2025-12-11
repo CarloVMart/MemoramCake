@@ -7,7 +7,9 @@
 #include <iomanip>
 #include <sstream>
 
-Board::Board() : firstIndex(-1), secondIndex(-1), resolveTimer(0.f), resolving(false) {}
+Board::Board() 
+    : firstIndex(-1), secondIndex(-1), resolveTimer(0.f), resolving(false) 
+{}
 
 void Board::loadAssets() {
     for (int i = 0; i < 15; ++i) {
@@ -112,11 +114,18 @@ void Board::draw(sf::RenderWindow& window) {
 
 void Board::handleClick(sf::Vector2f pos) {
     if (resolving) return;
+
     for (int i = 0; i < 30; ++i) {
         Card& card = cards[i];
+
         if (card.isMatched() || card.isFaceUp()) continue;
+
         if (card.backSprite().getGlobalBounds().contains(pos)) {
             card.reveal();
+
+            // Sonido flip
+            if (onFlipSound) onFlipSound();
+
             if (firstIndex == -1) firstIndex = i;
             else if (secondIndex == -1) {
                 secondIndex = i;

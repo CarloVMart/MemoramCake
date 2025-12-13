@@ -1,76 +1,77 @@
-🍰 MemoramCake
+# 🍰 MemoramCake
 
-MemoramCake es un juego de memorama con una dulce temática de postres 🍩🧁.
-El objetivo es poner a prueba tu memoria encontrando la mayor cantidad de pares iguales antes de que el tiempo se agote.
+**MemoramCake** es un juego de memorama con temática de postres 🍩🧁.  
+El objetivo es poner a prueba tu memoria encontrando la mayor cantidad de **pares** posibles en **60 segundos**.
 
-🎯 Objetivo del juego
+---
 
-Encuentra la mayor cantidad de pares de postres posibles en 60 segundos.
-Cada par correcto suma puntos y cada segundo cuenta.
+## 🎯 Objetivo del juego
 
-🕹️ ¿Cómo jugar?
+Encontrar el mayor número de **pares de cartas iguales** antes de que el tiempo se agote.
 
-Inicia el juego desde el menú principal.
+⏱️ Tiempo límite: **60 segundos**
 
-Se mostrará un tablero con cartas volteadas.
+---
 
-Haz clic en dos cartas para descubrirlas:
+## 🕹️ Cómo jugar
 
-🍪 Si son iguales → ¡Par conseguido!
+1. Inicia el juego.
+2. Aparecerá un boton para iniciar el juego.
+3. Selecciona dos cartas para revelarlas:
+   - ✅ Si son iguales, se forma un par.
+   - ❌ Si no coinciden, se vuelven a voltear.
+4. Continúa hasta que el tiempo llegue a cero.
+5. Al final se mostrará el total de **pares encontrados**.
 
-❌ Si no coinciden → Se voltean nuevamente.
+---
 
-Repite hasta que el tiempo llegue a 0.
+## 📜 Reglas
 
-Al final, se mostrará el número total de pares encontrados.
+- Solo se pueden voltear **dos cartas a la vez**.
+- Las cartas emparejadas permanecen visibles.
+- El juego termina cuando el temporizador llega a **0**.
+- Gana quien logre más pares dentro del tiempo límite.
 
-⏱️ Reglas
+---
 
-El tiempo límite es de 60 segundos.
+## 🍩 Temática
 
-Solo se pueden voltear dos cartas a la vez.
+- Postres kawaii (pasteles, donas, helados, gelatinas, cupcakes, etc.).
+- Estilo visual colorido y amigable.
+- Apto para todas las edades.
 
-Las cartas emparejadas permanecen visibles.
+---
 
-El juego termina cuando el tiempo se acaba.
+## 🧠 Habilidades que desarrolla
 
-🍩 Temática
+- Memoria visual
+- Concentración
+- Velocidad de reacción
 
-Postres kawaii (pasteles, donas, helados, gelatinas y más).
+---
 
-Estilo colorido y amigable.
+## 🛠️ Tecnologías utilizadas
 
-Diseño pensado para todas las edades.
+- Lenguaje: **C++**
+- Librería gráfica: **SFML**
+- Plataforma: **Windows**
 
-🧠 Habilidades que desarrolla
+---
 
-Memoria visual
+## 🚀 Posibles mejoras futuras
 
-Concentración
+- Niveles de dificultad
+- Tabla de puntuaciones
+- Efectos de sonido y música
+- Modo de juego sin límite de tiempo
 
-Rapidez mental
+---
 
-🛠️ Tecnologías utilizadas
+## 📄 Licencia
 
-(Modifica esta sección según tu proyecto)
+Proyecto de uso educativo y recreativo.  
+Eres libre de modificarlo y mejorarlo.
 
-Lenguaje: C++
+---
 
-Librería gráfica: SFML
-
-Plataforma: Windows
-
-🚀 Próximas mejoras (ideas)
-
-Diferentes niveles de dificultad
-
-Tabla de puntuaciones
-
-Música y efectos de sonido
-
-Modo sin límite de tiempo
-
-📄 Licencia
-
-Este proyecto es de uso educativo y recreativo.
-Puedes modificarlo y mejorarlo libremente.
+¡Disfruta jugando **MemoramCake**! 🍰🧠

@@ -1,5 +1,4 @@
 # Archivos binarios
-/bin/*.exe
 /bin/*.dll
 /bin/*.o
 
@@ -15,7 +14,6 @@
 *.log
 *.tmp
 *.out
-*.exe
 
 # Otros sistemas
 .DS_Store

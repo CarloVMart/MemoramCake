@@ -1,5 +1,4 @@
 # Archivos binarios
-/bin/*.dll
 /bin/*.o
 
 # Carpeta SFML

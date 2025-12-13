@@ -8,29 +8,24 @@ Game::Game()
       state(MENU),
       paused(false)
 {
-    // Fondo
     if (!backgroundTexture.loadFromFile("assets/images/fondo.png"))
         std::cerr << "Error cargando fondo.png\n";
 
     background.setTexture(backgroundTexture);
     scaleBackground();
 
-    // Boton Play
     if (!playTexture.loadFromFile("assets/images/play_button.png"))
         std::cerr << "Error cargando play_button.png\n";
 
     playButton = new Button(playTexture);
     centerPlayButton();
 
-    // Fuente
     if (!font.loadFromFile("assets/fonts/LuckiestGuy-Regular.ttf"))
         std::cerr << "Error cargando fuente\n";
 
-    // Tablero
     board.loadAssets();
     board.initCards();
 
-    // ----------------- AUDIO ------------------
 
     if (!musicFondo.openFromFile("assets/music/music_fondo.ogg"))
         std::cerr << "Error cargando music_fondo.ogg\n";
@@ -48,7 +43,6 @@ Game::Game()
     countdownSound.setBuffer(countdownBuffer);
     countdownSound.setVolume(90.f);
 
-    // Sonido flip
     board.onFlipSound = [this]() {
         this->flipSound.play();
     };
@@ -108,7 +102,7 @@ void Game::processEvents() {
                     state = PLAYING;
                     timer.reset(60.f);
                     board.initCards();
-                    countdownSound.play();   // Sonido countdown
+                    countdownSound.play();
                 }
 
             } else if (state == PLAYING && !paused) {

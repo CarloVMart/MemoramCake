@@ -123,7 +123,6 @@ void Board::handleClick(sf::Vector2f pos) {
         if (card.backSprite().getGlobalBounds().contains(pos)) {
             card.reveal();
 
-            // Sonido flip
             if (onFlipSound) onFlipSound();
 
             if (firstIndex == -1) firstIndex = i;
